@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace DumperMetadataGenerator.MetadataGenerator
 {
@@ -69,7 +70,7 @@ namespace DumperMetadataGenerator.MetadataGenerator
             foreach(CustomAttribute attrib in method.CustomAttributes)
             {
                 if (attrib.Constructor.FullName != "System.Runtime.CompilerServices.MethodImplAttribute") continue;
-                if ((int)attrib.ConstructorArguments[0].Value != 4096) continue;
+                if ((int)attrib.ConstructorArguments[0].Value != 4096) continue; // MethodImplOptions.InternalCall
 
                 return true;
             }
@@ -77,7 +78,34 @@ namespace DumperMetadataGenerator.MetadataGenerator
         }
         public bool ModifyMethod(MethodDefinition method)
         {
+            if(method == null || method.HasBody)
+            {
+                Console.WriteLine("Method is either null or already contains a body!");
+                return false;
+            }
+
+            // Rebind method properties
+            method.IsInternalCall = false;
+            RemoveInternalAttribute(method);
+
+            // Setup body
+            method.Body = new MethodBody(method);
+            ILProcessor processor = method.Body.GetILProcessor();
+
+            // Generate body
+
             return true;
+        }
+        public void RemoveInternalAttribute(MethodDefinition method)
+        {
+            foreach (CustomAttribute attrib in method.CustomAttributes)
+            {
+                if (attrib.Constructor.FullName != "System.Runtime.CompilerServices.MethodImplAttribute") continue;
+                if ((int)attrib.ConstructorArguments[0].Value != 4096) continue; // MethodImplOptions.InternalCall
+
+                method.CustomAttributes.Remove(attrib);
+                break;
+            }
         }
         #endregion
     }
