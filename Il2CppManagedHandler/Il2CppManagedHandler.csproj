@@ -43,6 +43,7 @@
     <Compile Include="ConversionHelper.cs" />
     <Compile Include="ICallHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tests.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

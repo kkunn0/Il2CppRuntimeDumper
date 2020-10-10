@@ -53,6 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MetadataGenerator\DelegateGenerator.cs" />
     <Compile Include="MetadataGenerator\DumperMetadataGenerator.cs" />
     <Compile Include="MetadataGenerator\GeneratedMetadata.cs" />
     <Compile Include="Program.cs" />

@@ -10,7 +10,28 @@ namespace DumperMetadataGenerator.MetadataGenerator
 {
     public class GeneratedMetadata
     {
-        public GeneratedMetadata() { }
+        public static GeneratedMetadata Instance { get; private set; }
+        public ModuleDefinition MsCorLib { get; private set; }
+        public GeneratedMetadata(ModuleDefinition MsCorLib)
+        {
+            Instance = this;
+
+            // Setup core
+            this.MsCorLib = MsCorLib;
+            VoidType = MsCorLib.TypeSystem.Void;
+            ObjectType = MsCorLib.TypeSystem.Object;
+            IntPtrType = MsCorLib.TypeSystem.IntPtr;
+            AsyncResultType = MsCorLib.GetType("System.IAsyncResult");
+            AsyncCallbackType = MsCorLib.GetType("System.AsyncCallback");
+        }
+
+        #region Core Instances
+        public TypeReference VoidType { get; private set; }
+        public TypeReference ObjectType { get; private set; }
+        public TypeReference IntPtrType { get; private set; }
+        public TypeReference AsyncResultType { get; private set; }
+        public TypeReference AsyncCallbackType { get; private set; }
+        #endregion
 
         #region Module including and scanning
         private List<ModuleDefinition> _modules = new List<ModuleDefinition>();
@@ -55,7 +76,8 @@ namespace DumperMetadataGenerator.MetadataGenerator
                 if (!IsInternalMethod(method)) continue;
 
                 // Modify method and see if we succeed
-                if(!ModifyMethod(method))
+                TypeDefinition methodDelegate = CreateMethodDelegate(method);
+                if(methodDelegate == null || !ModifyMethod(method, methodDelegate))
                 {
                     Console.WriteLine("Failed to modify internal method " + method.FullName);
                     return false;
@@ -76,9 +98,11 @@ namespace DumperMetadataGenerator.MetadataGenerator
             }
             return false;
         }
-        public bool ModifyMethod(MethodDefinition method)
+        public TypeDefinition CreateMethodDelegate(MethodDefinition method) =>
+            DelegateGenerator.Create(method.DeclaringType, method.ReturnType, method.Parameters.Select(param => param.ParameterType));
+        public bool ModifyMethod(MethodDefinition method, TypeDefinition methodDelegate)
         {
-            if(method == null || method.HasBody)
+            if(method == null || methodDelegate == null || method.HasBody)
             {
                 Console.WriteLine("Method is either null or already contains a body!");
                 return false;

@@ -16,13 +16,15 @@ namespace DumperMetadataGenerator.MetadataGenerator
         public DumperMetadataGenerator(string dllDirectory)
         {
             if (!Directory.Exists(dllDirectory)) return;
+            if (!File.Exists(dllDirectory + "\\mscorlib.dll")) return;
 
             // Load the generated metadata
-            _generatedMetadata = new GeneratedMetadata();
+            _generatedMetadata = new GeneratedMetadata(ModuleDefinition.ReadModule(dllDirectory + "\\mscorlib.dll"));
 
             // Load all of the dlls into memory
             foreach(string dllFile in Directory.EnumerateFiles(dllDirectory, "*.dll"))
-                _unityModules.Add(ModuleDefinition.ReadModule(dllFile));
+                if(!dllFile.EndsWith("mscorlib.dll"))
+                    _unityModules.Add(ModuleDefinition.ReadModule(dllFile));
         }
 
         public bool GenerateMetadata()
