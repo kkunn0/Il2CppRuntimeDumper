@@ -12,7 +12,8 @@ namespace DumperMetadataGenerator.MetadataGenerator
     {
         public static GeneratedMetadata Instance { get; private set; }
         public ModuleDefinition MsCorLib { get; private set; }
-        public GeneratedMetadata(ModuleDefinition MsCorLib)
+        public ModuleDefinition ManagedHelperLib { get; private set; }
+        public GeneratedMetadata(ModuleDefinition MsCorLib, ModuleDefinition ManagedHelperLib)
         {
             Instance = this;
 
@@ -23,6 +24,15 @@ namespace DumperMetadataGenerator.MetadataGenerator
             IntPtrType = MsCorLib.TypeSystem.IntPtr;
             AsyncResultType = MsCorLib.GetType("System.IAsyncResult");
             AsyncCallbackType = MsCorLib.GetType("System.AsyncCallback");
+            DelegateType = MsCorLib.GetType("System.Delegate");
+
+            TypeType = MsCorLib.GetType("System.Type");
+            GetTypeFromHandle = TypeType.Methods.FirstOrDefault(method => method.Name == "GetTypeFromHandle");
+
+            // Setup managed helper
+            this.ManagedHelperLib = ManagedHelperLib;
+            ICallHelperType = ManagedHelperLib.GetType("Il2CppManagedHandler.ICallHelper");
+            ResolveICall = ICallHelperType.Methods.FirstOrDefault(method => method.Name == "ResolveICall");
         }
 
         #region Core Instances
@@ -31,6 +41,15 @@ namespace DumperMetadataGenerator.MetadataGenerator
         public TypeReference IntPtrType { get; private set; }
         public TypeReference AsyncResultType { get; private set; }
         public TypeReference AsyncCallbackType { get; private set; }
+        public TypeReference DelegateType { get; private set; }
+
+        public TypeDefinition TypeType { get; private set; }
+        public MethodDefinition GetTypeFromHandle { get; private set; }
+        #endregion
+
+        #region Managed Helper Instances
+        public TypeDefinition ICallHelperType { get; private set; }
+        public MethodDefinition ResolveICall { get; private set; }
         #endregion
 
         #region Module including and scanning
@@ -52,7 +71,7 @@ namespace DumperMetadataGenerator.MetadataGenerator
                 // Scan type and see if we succeed
                 if (!ScanType(type))
                 {
-                    Console.WriteLine("Failed to scan typpe " + type.FullName);
+                    Console.WriteLine("Failed to scan type " + type.FullName);
                     return false;
                 }
             }
@@ -111,12 +130,37 @@ namespace DumperMetadataGenerator.MetadataGenerator
             // Rebind method properties
             method.IsInternalCall = false;
             RemoveInternalAttribute(method);
+            method.Body.Variables.Clear();
+            method.Body.InitLocals = true;
+
+            // Setup locals
+            VariableDefinition func = new VariableDefinition(DelegateType);
+            method.Body.Variables.Add(func);
+
+            // Setup internal name
+            string internalName = method.DeclaringType.FullName + "::" + method.Name;
+
+            // Get delegate's invoke
+            MethodDefinition invoke = methodDelegate.Methods.FirstOrDefault(mth => mth.Name == "Invoke");
 
             // Setup body
             method.Body = new MethodBody(method);
             ILProcessor processor = method.Body.GetILProcessor();
 
-            // Generate body
+            // Resolve ICall delegate
+            processor.Emit(OpCodes.Ldstr, internalName);
+            processor.Emit(OpCodes.Ldtoken, methodDelegate);
+            processor.Emit(OpCodes.Call, GetTypeFromHandle);
+            processor.Emit(OpCodes.Call, ResolveICall);
+            processor.Emit(OpCodes.Stloc, func);
+
+            // Invoke ICall and return the result
+            processor.Emit(OpCodes.Ldloc, func);
+            processor.Emit(OpCodes.Castclass, methodDelegate);
+            foreach(ParameterDefinition param in method.Parameters)
+                processor.Emit(OpCodes.Ldarg, param);
+            processor.Emit(OpCodes.Callvirt, invoke);
+            processor.Emit(OpCodes.Ret);
 
             return true;
         }
