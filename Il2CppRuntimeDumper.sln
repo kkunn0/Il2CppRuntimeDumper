@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DumperMetadataGenerator", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Il2CppManagedHandler", "Il2CppManagedHandler\Il2CppManagedHandler.csproj", "{E9C48DEF-47D1-4F86-AEBB-2FCD2DFF9538}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Il2CppApiAnalyzer", "Il2CppApiAnalyzer\Il2CppApiAnalyzer.csproj", "{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,18 @@ Global
 		{E9C48DEF-47D1-4F86-AEBB-2FCD2DFF9538}.Release|x64.Build.0 = Release|Any CPU
 		{E9C48DEF-47D1-4F86-AEBB-2FCD2DFF9538}.Release|x86.ActiveCfg = Release|Any CPU
 		{E9C48DEF-47D1-4F86-AEBB-2FCD2DFF9538}.Release|x86.Build.0 = Release|Any CPU
+		{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}.Debug|x64.Build.0 = Debug|Any CPU
+		{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}.Debug|x86.Build.0 = Debug|Any CPU
+		{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}.Release|x64.ActiveCfg = Release|Any CPU
+		{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}.Release|x64.Build.0 = Release|Any CPU
+		{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}.Release|x86.ActiveCfg = Release|Any CPU
+		{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
