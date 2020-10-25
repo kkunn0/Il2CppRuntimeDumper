@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Il2CppManagedHandler
 {
@@ -11,6 +8,7 @@ namespace Il2CppManagedHandler
         {
             return null;
         }
+
         public static IntPtr ToIl2CppObject(object monoObject, IntPtr il2cppType)
         {
             return IntPtr.Zero;

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -10,9 +8,6 @@ namespace DumperMetadataGenerator.MetadataGenerator
 {
     public class GeneratedMetadata
     {
-        public static GeneratedMetadata Instance { get; private set; }
-        public ModuleDefinition MsCorLib { get; private set; }
-        public ModuleDefinition ManagedHelperLib { get; private set; }
         public GeneratedMetadata(ModuleDefinition MsCorLib, ModuleDefinition ManagedHelperLib)
         {
             Instance = this;
@@ -35,25 +30,35 @@ namespace DumperMetadataGenerator.MetadataGenerator
             ResolveICall = ICallHelperType.Methods.FirstOrDefault(method => method.Name == "ResolveICall");
         }
 
-        #region Core Instances
-        public TypeReference VoidType { get; private set; }
-        public TypeReference ObjectType { get; private set; }
-        public TypeReference IntPtrType { get; private set; }
-        public TypeReference AsyncResultType { get; private set; }
-        public TypeReference AsyncCallbackType { get; private set; }
-        public TypeReference DelegateType { get; private set; }
+        public static GeneratedMetadata Instance { get; private set; }
+        public ModuleDefinition MsCorLib { get; }
+        public ModuleDefinition ManagedHelperLib { get; }
 
-        public TypeDefinition TypeType { get; private set; }
-        public MethodDefinition GetTypeFromHandle { get; private set; }
+        #region Core Instances
+
+        public TypeReference VoidType { get; }
+        public TypeReference ObjectType { get; }
+        public TypeReference IntPtrType { get; }
+        public TypeReference AsyncResultType { get; }
+        public TypeReference AsyncCallbackType { get; }
+        public TypeReference DelegateType { get; }
+
+        public TypeDefinition TypeType { get; }
+        public MethodDefinition GetTypeFromHandle { get; }
+
         #endregion
 
         #region Managed Helper Instances
-        public TypeDefinition ICallHelperType { get; private set; }
-        public MethodDefinition ResolveICall { get; private set; }
+
+        public TypeDefinition ICallHelperType { get; }
+        public MethodDefinition ResolveICall { get; }
+
         #endregion
 
         #region Module including and scanning
-        private List<ModuleDefinition> _modules = new List<ModuleDefinition>();
+
+        private readonly List<ModuleDefinition> _modules = new List<ModuleDefinition>();
+
         public bool IncludeModule(ModuleDefinition module)
         {
             if (module == null || !module.HasTypes)
@@ -63,7 +68,7 @@ namespace DumperMetadataGenerator.MetadataGenerator
             }
 
             // Scan types and modify methods
-            foreach(TypeDefinition type in module.GetTypes())
+            foreach (var type in module.GetTypes())
             {
                 if (type.IsEnum || type.IsInterface) continue;
                 if (!type.HasMethods) continue;
@@ -80,23 +85,25 @@ namespace DumperMetadataGenerator.MetadataGenerator
             _modules.Add(module);
             return true;
         }
+
         public bool ScanType(TypeDefinition type)
         {
-            if(type == null || !type.HasMethods)
+            if (type == null || !type.HasMethods)
             {
                 Console.WriteLine("Type is either null or does not cotain methods!");
                 return false;
             }
 
             // Scan methods and modify specific ones
-            foreach(MethodDefinition method in type.Methods)
+            foreach (var method in type.Methods)
             {
-                if (!method.HasBody || !method.HasCustomAttributes || !method.IsStatic || !method.IsInternalCall) continue;
+                if (!method.HasBody || !method.HasCustomAttributes || !method.IsStatic ||
+                    !method.IsInternalCall) continue;
                 if (!IsInternalMethod(method)) continue;
 
                 // Modify method and see if we succeed
-                TypeDefinition methodDelegate = CreateMethodDelegate(method);
-                if(methodDelegate == null || !ModifyMethod(method, methodDelegate))
+                var methodDelegate = CreateMethodDelegate(method);
+                if (methodDelegate == null || !ModifyMethod(method, methodDelegate))
                 {
                     Console.WriteLine("Failed to modify internal method " + method.FullName);
                     return false;
@@ -106,22 +113,29 @@ namespace DumperMetadataGenerator.MetadataGenerator
             // Finalize
             return true;
         }
+
         public bool IsInternalMethod(MethodDefinition method)
         {
-            foreach(CustomAttribute attrib in method.CustomAttributes)
+            foreach (var attrib in method.CustomAttributes)
             {
                 if (attrib.Constructor.FullName != "System.Runtime.CompilerServices.MethodImplAttribute") continue;
-                if ((int)attrib.ConstructorArguments[0].Value != 4096) continue; // MethodImplOptions.InternalCall
+                if ((int) attrib.ConstructorArguments[0].Value != 4096) continue; // MethodImplOptions.InternalCall
 
                 return true;
             }
+
             return false;
         }
-        public TypeDefinition CreateMethodDelegate(MethodDefinition method) =>
-            DelegateGenerator.Create(method.DeclaringType, method.ReturnType, method.Parameters.Select(param => param.ParameterType));
+
+        public TypeDefinition CreateMethodDelegate(MethodDefinition method)
+        {
+            return DelegateGenerator.Create(method.DeclaringType, method.ReturnType,
+                                            method.Parameters.Select(param => param.ParameterType));
+        }
+
         public bool ModifyMethod(MethodDefinition method, TypeDefinition methodDelegate)
         {
-            if(method == null || methodDelegate == null || method.HasBody)
+            if (method == null || methodDelegate == null || method.HasBody)
             {
                 Console.WriteLine("Method is either null or already contains a body!");
                 return false;
@@ -134,18 +148,18 @@ namespace DumperMetadataGenerator.MetadataGenerator
             method.Body.InitLocals = true;
 
             // Setup locals
-            VariableDefinition func = new VariableDefinition(DelegateType);
+            var func = new VariableDefinition(DelegateType);
             method.Body.Variables.Add(func);
 
             // Setup internal name
-            string internalName = method.DeclaringType.FullName + "::" + method.Name;
+            var internalName = method.DeclaringType.FullName + "::" + method.Name;
 
             // Get delegate's invoke
-            MethodDefinition invoke = methodDelegate.Methods.FirstOrDefault(mth => mth.Name == "Invoke");
+            var invoke = methodDelegate.Methods.FirstOrDefault(mth => mth.Name == "Invoke");
 
             // Setup body
             method.Body = new MethodBody(method);
-            ILProcessor processor = method.Body.GetILProcessor();
+            var processor = method.Body.GetILProcessor();
 
             // Resolve ICall delegate
             processor.Emit(OpCodes.Ldstr, internalName);
@@ -157,24 +171,26 @@ namespace DumperMetadataGenerator.MetadataGenerator
             // Invoke ICall and return the result
             processor.Emit(OpCodes.Ldloc, func);
             processor.Emit(OpCodes.Castclass, methodDelegate);
-            foreach(ParameterDefinition param in method.Parameters)
+            foreach (var param in method.Parameters)
                 processor.Emit(OpCodes.Ldarg, param);
             processor.Emit(OpCodes.Callvirt, invoke);
             processor.Emit(OpCodes.Ret);
 
             return true;
         }
+
         public void RemoveInternalAttribute(MethodDefinition method)
         {
-            foreach (CustomAttribute attrib in method.CustomAttributes)
+            foreach (var attrib in method.CustomAttributes)
             {
                 if (attrib.Constructor.FullName != "System.Runtime.CompilerServices.MethodImplAttribute") continue;
-                if ((int)attrib.ConstructorArguments[0].Value != 4096) continue; // MethodImplOptions.InternalCall
+                if ((int) attrib.ConstructorArguments[0].Value != 4096) continue; // MethodImplOptions.InternalCall
 
                 method.CustomAttributes.Remove(attrib);
                 break;
             }
         }
+
         #endregion
     }
 }

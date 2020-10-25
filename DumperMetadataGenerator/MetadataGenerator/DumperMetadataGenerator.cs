@@ -1,17 +1,13 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 using Mono.Cecil;
 
 namespace DumperMetadataGenerator.MetadataGenerator
 {
     public class DumperMetadataGenerator
     {
-        private List<ModuleDefinition> _unityModules = new List<ModuleDefinition>();
         private GeneratedMetadata _generatedMetadata;
+        private readonly List<ModuleDefinition> _unityModules = new List<ModuleDefinition>();
 
         public DumperMetadataGenerator(string dllDirectory, string managedHandlerPath)
         {
@@ -19,11 +15,12 @@ namespace DumperMetadataGenerator.MetadataGenerator
             if (!File.Exists(dllDirectory + "\\mscorlib.dll")) return;
 
             // Load the generated metadata
-            _generatedMetadata = new GeneratedMetadata(ModuleDefinition.ReadModule(dllDirectory + "\\mscorlib.dll"), ModuleDefinition.ReadModule(managedHandlerPath));
+            _generatedMetadata = new GeneratedMetadata(ModuleDefinition.ReadModule(dllDirectory + "\\mscorlib.dll"),
+                                                       ModuleDefinition.ReadModule(managedHandlerPath));
 
             // Load all of the dlls into memory
-            foreach(string dllFile in Directory.EnumerateFiles(dllDirectory, "*.dll"))
-                if(!dllFile.EndsWith("mscorlib.dll"))
+            foreach (var dllFile in Directory.EnumerateFiles(dllDirectory, "*.dll"))
+                if (!dllFile.EndsWith("mscorlib.dll"))
                     _unityModules.Add(ModuleDefinition.ReadModule(dllFile));
         }
 

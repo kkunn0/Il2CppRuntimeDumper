@@ -38,6 +38,7 @@ namespace Il2CppApiAnalyzer.Parsers
 
         private void ProcessApiDef()
         {
+            // TODO: Parse signature and extract types
             Console.WriteLine($"Got DO_API: {apiHeader.ReadLineAndReset()}");
         }
     }

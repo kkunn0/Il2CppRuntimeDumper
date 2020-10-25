@@ -1,16 +1,13 @@
 ﻿using System;
 using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace DumperMetadataGenerator
 {
-    class Program
+    internal class Program
     {
-        static string Path_UnityFiles = "";
+        private static string Path_UnityFiles = "";
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Console.Title = "Il2Cpp Runtime Dumper - Metadata Generator";
             Console.WriteLine("Welcome to the Il2Cpp Runtime Dumper - Metadata Generator");
@@ -20,10 +17,9 @@ namespace DumperMetadataGenerator
             Path_UnityFiles = Console.ReadLine();
 
             // Verify files
-            if(!Directory.Exists(Path_UnityFiles))
+            if (!Directory.Exists(Path_UnityFiles))
             {
                 Console.WriteLine("Directory does not exist!");
-                return;
             }
 
             // 

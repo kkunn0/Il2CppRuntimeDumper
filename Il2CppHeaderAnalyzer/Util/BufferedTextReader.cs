@@ -7,8 +7,8 @@ namespace Il2CppApiAnalyzer.Util
     internal class BufferedTextReader : IDisposable
     {
         private readonly StringBuilder buffer;
-        private int bufferOffset;
         private readonly TextReader reader;
+        private int bufferOffset;
 
         public BufferedTextReader(TextReader reader)
         {
