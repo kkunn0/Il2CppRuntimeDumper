@@ -3,6 +3,7 @@
     <TargetFramework>net48</TargetFramework>
     <OutputType>Exe</OutputType>
     <LangVersion>8</LangVersion>
+    <RootNamespace>Il2CppApiAnalyzer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <None Update="Test\test_api.h">

@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DumperMetadataGenerator", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Il2CppManagedHandler", "Il2CppManagedHandler\Il2CppManagedHandler.csproj", "{E9C48DEF-47D1-4F86-AEBB-2FCD2DFF9538}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Il2CppApiAnalyzer", "Il2CppApiAnalyzer\Il2CppApiAnalyzer.csproj", "{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Il2CppHeaderAnalyzer", "Il2CppHeaderAnalyzer\Il2CppHeaderAnalyzer.csproj", "{46AB5E97-BD82-46F9-8F2D-BEAA9CE2AEB0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
